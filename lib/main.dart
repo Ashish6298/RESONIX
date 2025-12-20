@@ -4,6 +4,7 @@ import 'theme/theme_provider.dart';
 import 'providers/music_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart'; // <--- Added this import
 
 void main() {
   runApp(
@@ -13,11 +14,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => MusicProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
       ],
-      child: const MyApp(),   // ← correct
+      child: const MyApp(),
     ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       themeMode: themeProvider.themeMode,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      home: const HomeScreen(),
+      home: const SplashScreen(), // <--- Updated to start with Splash Screen
     );
   }
 }

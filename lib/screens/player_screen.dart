@@ -15,9 +15,14 @@ class PlayerScreen extends StatelessWidget {
     final music = Provider.of<MusicProvider>(context);
     final fav = Provider.of<FavoritesProvider>(context);
 
-    final filePath = music.pickedFiles[index];
+    // LOGIC: Ensure UI updates when song changes
+    final int activeIndex = music.currentIndex >= 0 ? music.currentIndex : 0;
+    final int totalSongs = music.pickedFiles.length;
+    final filePath = music.pickedFiles[activeIndex];
+    
     final String rawFileName = filePath.split('/').last;
     final String displayTitle = rawFileName.replaceAll(RegExp(r'\.[^.]*$'), '');
+    final String fileExtension = filePath.split('.').last.toUpperCase(); // Extract MP3/WAV
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -29,14 +34,27 @@ class PlayerScreen extends StatelessWidget {
           icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 30, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          "Now Playing",
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 14,
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.w600
-          ),
+        title: Column(
+          children: [
+            Text(
+              "PLAYING NOW",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 10,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              "Track ${activeIndex + 1} of $totalSongs", // Informative: Track Count
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -46,20 +64,20 @@ class PlayerScreen extends StatelessWidget {
             ),
             onPressed: () => fav.toggleFavorite(filePath),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
       ),
       body: Stack(
         children: [
-          // 1. Background Gradient
+          // 1. Background: Spotlight Effect
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+              gradient: RadialGradient(
+                center: const Alignment(0, -0.6), // Spotlight near top center
+                radius: 1.2,
                 colors: [
                   Colors.deepPurple.shade900,
-                  const Color(0xFF121212), // Deep black-grey
+                  const Color(0xFF0F0F0F), // Darker black-grey
                 ],
               ),
             ),
@@ -71,70 +89,128 @@ class PlayerScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 children: [
-                  const Spacer(flex: 1), // Push content down slightly
+                  const Spacer(flex: 2), 
 
-                  // 3. Central Album Art Card with Shadow & Glow
+                  // 3. Album Art: Premium Glass Card
                   Container(
                     height: 320,
                     width: 320,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(30),
                       boxShadow: [
-                        // Soft glow effect behind the card
+                        // Deep glow
                         BoxShadow(
-                          color: Colors.deepPurpleAccent.withOpacity(0.4),
-                          blurRadius: 40,
+                          color: Colors.deepPurpleAccent.withOpacity(0.3),
+                          blurRadius: 50,
+                          spreadRadius: 5,
                           offset: const Offset(0, 20),
+                        ),
+                        // Sharp shadow
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1), // Glass effect
-                            border: Border.all(color: Colors.white.withOpacity(0.2)),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.music_note_rounded,
-                              size: 140,
-                              color: Colors.white54,
+                    child: Stack(
+                      children: [
+                        // The Glass Container
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.08),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white.withOpacity(0.15),
+                                    Colors.white.withOpacity(0.05),
+                                  ]
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2), 
+                                  width: 1.5
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.music_note_rounded,
+                                  size: 140,
+                                  color: Colors.white54,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
 
-                  const Spacer(flex: 1), // Equal spacing below card
+                  const Spacer(flex: 2), 
 
                   // 4. Song Info
                   Column(
                     children: [
-                      Text(
-                        displayTitle,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          displayTitle,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 24, // Slightly smaller for elegance
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Unknown Artist",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white.withOpacity(0.6),
-                          fontWeight: FontWeight.w400,
-                        ),
+                      const SizedBox(height: 12),
+                      
+                      // Artist & Format Badge Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Unknown Artist",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white.withOpacity(0.6),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            width: 1,
+                            height: 16,
+                            color: Colors.white24,
+                          ),
+                          const SizedBox(width: 10),
+                          // Informative Badge: Shows MP3/WAV
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: Text(
+                              fileExtension, 
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurpleAccent.shade100,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -147,7 +223,7 @@ class PlayerScreen extends StatelessWidget {
                     child: const PlayerControls(),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 50), // More bottom breathing room
                 ],
               ),
             ),

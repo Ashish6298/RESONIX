@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:just_audio/just_audio.dart'; // Import just_audio for LoopMode
 import '../providers/music_provider.dart';
-import '../utils/format_duration.dart'; // Ensure this file exists
+import '../utils/format_duration.dart'; 
 
 class PlayerControls extends StatelessWidget {
   const PlayerControls({super.key});
@@ -20,7 +21,6 @@ class PlayerControls extends StatelessWidget {
             final position = snapshot.data ?? Duration.zero;
             final duration = music.player.duration ?? Duration.zero;
 
-            // Safety check to prevent slider errors if duration is 0
             final maxDuration = duration.inSeconds.toDouble() > 0 
                 ? duration.inSeconds.toDouble() 
                 : 1.0;
@@ -28,7 +28,7 @@ class PlayerControls extends StatelessWidget {
 
             return Column(
               children: [
-                // Custom Slider Theme for a sleek look
+                // Custom Slider
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: Colors.deepPurpleAccent,
@@ -77,10 +77,15 @@ class PlayerControls extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Shuffle Button (Visual only for now)
+            // SHUFFLE BUTTON
             IconButton(
-              icon: Icon(Icons.shuffle, color: Colors.grey.shade600, size: 24),
-              onPressed: () {}, // Add shuffle logic later
+              icon: Icon(
+                Icons.shuffle, 
+                // Change color if active
+                color: music.isShuffle ? Colors.deepPurpleAccent : Colors.grey.shade600, 
+                size: 24
+              ),
+              onPressed: music.toggleShuffle, // Call the provider function
             ),
 
             // PREVIOUS BUTTON
@@ -100,7 +105,7 @@ class PlayerControls extends StatelessWidget {
                   height: 70,
                   width: 70,
                   decoration: BoxDecoration(
-                    color: Colors.white, // High contrast
+                    color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -114,7 +119,7 @@ class PlayerControls extends StatelessWidget {
                     iconSize: 32,
                     icon: Icon(
                       isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      color: Colors.black, // Dark icon on light background
+                      color: Colors.black, 
                     ),
                     onPressed: () {
                       isPlaying ? music.player.pause() : music.player.play();
@@ -131,10 +136,16 @@ class PlayerControls extends StatelessWidget {
               size: 35,
             ),
 
-            // Repeat Button (Visual only for now)
+            // REPEAT BUTTON
             IconButton(
-              icon: Icon(Icons.repeat, color: Colors.grey.shade600, size: 24),
-              onPressed: () {}, // Add repeat logic later
+              icon: Icon(
+                // Change Icon based on mode (One vs All)
+                music.loopMode == LoopMode.one ? Icons.repeat_one_rounded : Icons.repeat_rounded, 
+                // Change color if active
+                color: music.loopMode != LoopMode.off ? Colors.deepPurpleAccent : Colors.grey.shade600, 
+                size: 24
+              ),
+              onPressed: music.toggleLoop, // Call the provider function
             ),
           ],
         ),
@@ -144,7 +155,6 @@ class PlayerControls extends StatelessWidget {
 }
 
 // --- Helper Widget for Next/Prev Buttons ---
-// This handles the "Click Effect" specifically
 class _NeumorphicControlButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -163,7 +173,6 @@ class _NeumorphicControlButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(50),
-        // These colors create the "Flash" effect when clicked
         splashColor: Colors.deepPurpleAccent.withOpacity(0.5),
         highlightColor: Colors.deepPurpleAccent.withOpacity(0.2),
         child: Container(
